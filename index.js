@@ -44,19 +44,22 @@ var getAllOrgRepos = function(github, org) {
 /**
  * @param {Array} contribs As obtained from /repos/:org/:repo/stats/contributions
  */
-var getLastWeekContribsByUser = function (contribs) {
+var getContribsByUser = function (contribs) {
     return _(contribs)
         .map(function(contrib) {
             return {
                 user: contrib.author.login,
                 total: contrib.total,
-                commitsThisWeek: _(contrib.weeks)
+                commits: _(contrib.weeks)
                     .sortBy('w')
-                    .last()
-                    .c
+                    .reverse()
+                    .last(4)
+                    .reduce(function(total, weeklyContribs) {
+                        return total + weeklyContribs.c;
+                    }, 0)
             };
         })
-        .sortBy('commitsThisWeek')
+        .sortBy('commits')
         .reverse()
         .value();
 };
@@ -69,10 +72,10 @@ var getLastWeekContribsByRepoAndUser = function (github, repo) {
     return Q.nsend(github, 'get', '/repos/' + repo + '/stats/contributors')
         .spread(function(status, contribs) {
             console.log('repo contribs', repo);
-            return getLastWeekContribsByUser(contribs);
-        })
-        .then(function(contribs) {
-            return {repo: repo, contributions: contribs};
+            return {
+                repo: repo, 
+                contribs: getContribsByUser(contribs)
+            };
         });
 };
 
@@ -83,13 +86,12 @@ getAllOrgRepos(github, org)
             return getLastWeekContribsByRepoAndUser(github, org + '/' + repo.name);
         }));
     })
-    .then(function(contributions) {
-        var contribsByUser = contributions.reduce(function(byUser, repoContributions) {
-            repoContributions.contributions.forEach(function(userContributions) {
-                if (userContributions.commitsThisWeek) {
-                    byUser[userContributions.user] = byUser[userContributions.user] || {};
-                    byUser[userContributions.user][repoContributions.repo] = userContributions.commitsThisWeek;
-                }
+    .then(function(contribs) {
+        var contribsByUser = contribs.reduce(function(byUser, repoContribs) {
+            repoContribs.contribs.forEach(function(userContribs) {
+                if (!userContribs.commits) return;
+                byUser[userContribs.user] = byUser[userContribs.user] || {};
+                byUser[userContribs.user][repoContribs.repo] = userContribs.commits;
             });
             return byUser;
         }, {});
