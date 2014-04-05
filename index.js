@@ -41,20 +41,6 @@ var getAllOrgRepos = function(github, org) {
     })(1);
 };
 
-var sortMap = function (map, callback) {
-    return _(map)
-        .map(function (value, key) {
-            return {key: key, value: value};
-        })
-        .sortBy(function (element) {
-            return callback(element.value, element.key);
-        })
-        .reduce(function () {
-
-        })
-        .value();
-};
-
 /**
  * @param {Array} contribs As obtained from /repos/:org/:repo/stats/contributions
  */
