@@ -12,6 +12,7 @@
 var Q = require('q');
 var octonode = require('octonode');
 var _ = require('lodash');
+var githubUtils = require('./lib/github-utils');
 
 Q.longStackSupport = true;
 Q.onerror = function (error) {
@@ -30,60 +31,11 @@ Q.nsend(github, 'limit').spread(function(left, max) {
     console.log('limit left', left, 'max', max);
 }).done();
 
-var getAllOrgRepos = function(github, org) {
-    var repos = [];
-    return (function getPage(page) {
-        console.log('page', page);
-        return Q.nsend(github.org(org), 'repos', page, 100).spread(function(pageRepos) {
-            repos = repos.concat(pageRepos);
-            return pageRepos.length ? getPage(page + 1) : repos;
-        });
-    })(1);
-};
-
-/**
- * @param {Array} contribs As obtained from /repos/:org/:repo/stats/contributions
- */
-var getContribsByUser = function (contribs) {
-    return _(contribs)
-        .map(function(contrib) {
-            return {
-                user: contrib.author.login,
-                total: contrib.total,
-                commits: _(contrib.weeks)
-                    .sortBy('w')
-                    .reverse()
-                    .last(4)
-                    .reduce(function(total, weeklyContribs) {
-                        return total + weeklyContribs.c;
-                    }, 0)
-            };
-        })
-        .sortBy('commits')
-        .reverse()
-        .value();
-};
-
-/**
- * @param {octonode.client} github
- * @param {string} repo As ':user/:repo'
- */
-var getLastWeekContribsByRepoAndUser = function (github, repo) {
-    return Q.nsend(github, 'get', '/repos/' + repo + '/stats/contributors')
-        .spread(function(status, contribs) {
-            console.log('repo contribs', repo);
-            return {
-                repo: repo, 
-                contribs: getContribsByUser(contribs)
-            };
-        });
-};
-
-getAllOrgRepos(github, org)
+githubUtils.getAllOrgRepos(github, org)
     .then(function(repos) {
         console.log('repos', repos.length);
         return Q.all(repos.map(function(repo) {
-            return getLastWeekContribsByRepoAndUser(github, org + '/' + repo.name);
+            return githubUtils.getContribsByRepoAndUser(github, org + '/' + repo.name);
         }));
     })
     .then(function(contribs) {
