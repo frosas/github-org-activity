@@ -83,6 +83,6 @@ cache
             })
             .value();
 
-        console.log(contribsByUser);
+        console.log(JSON.stringify(contribsByUser, null, 4));
     })
     .done();
