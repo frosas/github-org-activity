@@ -14,10 +14,9 @@ var octonode = require('octonode');
 var _ = require('lodash');
 var githubUtils = require('./lib/github-utils');
 
+// Improve stack traces
+require('longjohn');
 Q.longStackSupport = true;
-Q.onerror = function (error) {
-    console.log(error);
-};
 
 var user = process.env.GITHUB_USER;
 var password = process.env.GITHUB_PASSWORD;
