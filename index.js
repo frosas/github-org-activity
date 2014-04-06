@@ -27,7 +27,8 @@ Q.nsend(github, 'limit').spread(function(left, max) {
 }).done();
 
 var cache = new Cache({
-    adapter: new CacheFileAdapter({dir: 'cache'})
+    adapter: new CacheFileAdapter({dir: 'cache'}),
+    logger: console
 });
 
 cache
