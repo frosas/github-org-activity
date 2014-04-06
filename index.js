@@ -13,6 +13,9 @@ var Q = require('q');
 var octonode = require('octonode');
 var _ = require('lodash');
 var githubUtils = require('./lib/github-utils');
+var Cache = require('./lib/cache');
+var CacheFileAdapter = require('./lib/cache/adapter/file');
+var throttle = require('./lib/throttle');
 
 // Improve stack traces
 require('longjohn');
@@ -30,11 +33,29 @@ Q.nsend(github, 'limit').spread(function(left, max) {
     console.log('limit left', left, 'max', max);
 }).done();
 
-githubUtils.getAllOrgRepos(github, org)
+var cache = new Cache({
+    adapter: new CacheFileAdapter({dir: 'cache'})
+});
+
+cache
+    .get('org-' + org, function () {
+        return githubUtils.getAllOrgRepos(github, org);
+    })
     .then(function(repos) {
-        console.log('repos', repos.length);
-        return Q.all(repos.map(function(repo) {
-            return githubUtils.getContribsByRepoAndUser(github, org + '/' + repo.name);
+        return throttle(1, repos.map(function(repo) {
+            return function () {
+                var fullRepoName = org + '/' + repo.name;
+                return cache
+                    .get('repo-' + fullRepoName, function () {
+                        return githubUtils.getContribsByRepoAndUser(github, fullRepoName);
+                    })
+                    .then(function (contribs) {
+                        return {
+                            repo: fullRepoName,
+                            contribs: githubUtils.getContribsByUser(contribs)
+                        };
+                    });
+            };
         }));
     })
     .then(function(contribs) {
