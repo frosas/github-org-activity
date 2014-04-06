@@ -8,7 +8,7 @@ $ npm install
 
 ```bash
 $ export GITHUB_USER=<user>
-$ export GITHUB_PASSWORD=$(read && echo $REPLY) # Type your password and hit enter
+$ export GITHUB_PASSWORD=$(read -s && echo $REPLY) # Type your password and hit enter
 $ node index.js <org>
 ```
 
