@@ -1,10 +1,3 @@
-/**
- * Usage:
- * $ export GITHUB_USER=<user>
- * $ export GITHUB_PASSWORD=`cat` # Type your password, hit enter and Ctrl+D
- * $ node index.js <org>
- */
-
 /* global process */
 
 'use strict';
