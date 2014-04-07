@@ -14,4 +14,5 @@ $ node index.js <org>
 
 ### TODO
 
-- Show stack traces on errors. It seems response objects are being thrown instead.
+- Convert Octonode errors to actual errors.
+- Set different max concurrencies for cache (1) and for GitHub (100)
