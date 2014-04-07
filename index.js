@@ -36,7 +36,7 @@ cache
         return githubUtils.getAllOrgRepos(github, org);
     })
     .then(function(repos) {
-        return throttle(1, repos.map(function(repo) {
+        return throttle(10, repos.map(function(repo) {
             return function () {
                 var fullRepoName = org + '/' + repo.name;
                 return cache
