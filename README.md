@@ -16,3 +16,4 @@ $ node index.js <org>
 
 - Convert Octonode errors to actual errors.
 - Set different max concurrencies for cache (1) and for GitHub (100)
+- Are branches considered?
