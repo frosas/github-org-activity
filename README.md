@@ -1,5 +1,7 @@
 ### Installation
 
+[![Greenkeeper badge](https://badges.greenkeeper.io/frosas/github-org-activity.svg)](https://greenkeeper.io/)
+
 ```bash
 $ npm install
 ```
